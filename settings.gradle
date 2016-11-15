@@ -1,0 +1,3 @@
+rootProject.name = 'interview-streams-root'
+
+include ':interview-streams-map'
