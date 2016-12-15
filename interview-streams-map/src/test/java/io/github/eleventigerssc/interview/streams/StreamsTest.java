@@ -14,23 +14,15 @@ public class StreamsTest {
 
     private static final String HELLO_WORLD[] = { "Hello", ",", "World", "!" };
 
-    private static final Function<String, String> UPPERCASE = new Function<String, String>() {
-        @Override
-        public String call(String s) {
-            return s.toUpperCase();
-        }
-    };
+    private static final Function<String, String> UPPERCASE = String::toUpperCase;
 
-    private static final Function<String, Stream<Character>> CHARACTERS = new Function<String, Stream<Character>>() {
-        @Override
-        public Stream<Character> call(String s) {
-            List<Character> characters = new ArrayList<>();
-            char[] chars = s.toCharArray();
-            for (char aChar : chars) {
-                characters.add(aChar);
-            }
-            return Streams.from(characters);
+    private static final Function<String, Stream<Character>> CHARACTERS = s -> {
+        List<Character> characters = new ArrayList<>();
+        char[] chars = s.toCharArray();
+        for (char aChar : chars) {
+            characters.add(aChar);
         }
+        return Streams.from(characters);
     };
 
     private final Logger logger = spy(new SystemLogger());
@@ -49,20 +41,10 @@ public class StreamsTest {
 
         InOrder inOrder = inOrder(logger);
 
-        characterStream.forEach(new Consumer<Character>(){
-            @Override
-            public void accept(Character value) {
-                logger.log(value);
-            }
-        });
+        characterStream.forEach(logger::log);
         inOrder.verify(logger, calls(12)).log(anyChar());
 
-        characterStream.forEach(new Consumer<Character>(){
-            @Override
-            public void accept(Character value) {
-                logger.log(value);
-            }
-        });
+        characterStream.forEach(logger::log);
         inOrder.verify(logger, calls(12)).log(anyChar());
     }
 }
