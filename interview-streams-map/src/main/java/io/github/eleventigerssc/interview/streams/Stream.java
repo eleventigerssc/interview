@@ -24,4 +24,9 @@ interface Stream<T> {
      * of a mapped stream produced by applying the provided mapping function to each element.
      */
     <R> Stream<R> flatMap(Function<? super T, ? extends Stream<? extends R>> mapper);
+
+    /**
+     * Returns a stream consisting of the elements of this stream that match the given predicate.
+     */
+    Stream<T> filter(Predicate<? super T> predicate);
 }

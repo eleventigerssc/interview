@@ -6,6 +6,7 @@ import org.mockito.InOrder;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import static org.mockito.ArgumentMatchers.anyChar;
 import static org.mockito.Mockito.*;
@@ -25,11 +26,21 @@ public class StreamsTest {
         return Streams.from(characters);
     };
 
+    private static final Predicate<Character> ONLY_LETTERS = new Predicate<Character>() {
+
+        private final Pattern pattern = Pattern.compile("[a-zA-Z]+\\.?");
+
+        @Override
+        public boolean test(Character character) {
+            return pattern.matcher(character.toString()).matches();
+        }
+    };
+
     private final Logger logger = spy(new SystemLogger());
     private final List<String> strings = spy(new ArrayList<>(Arrays.asList(HELLO_WORLD)));
 
     @Test
-    public void map_flatMap_forEach() {
+    public void map_flatMap_filter_forEach() {
         // Create a stream from an iterable of Strings
         Stream<String> stream = Streams.from(strings);
         // strings object should not be touched at this point, think lazy
@@ -45,15 +56,20 @@ public class StreamsTest {
         // flatMap is lazy too
         verifyZeroInteractions(strings);
 
+        // Filter the individual character stream into a stream of letters only
+        Stream<Character> onlyLetters = characterStream.filter(ONLY_LETTERS);
+        // filter is lazy too
+        verifyZeroInteractions(strings);
+
         // Just a test util
         InOrder inOrder = inOrder(logger);
 
         // We finally use the result stream here, initial strings iterable may be touched
-        characterStream.forEach(logger::log);
-        inOrder.verify(logger, calls(12)).log(anyChar());
+        onlyLetters.forEach(logger::log);
+        inOrder.verify(logger, calls(10)).log(anyChar());
 
         // Let's try iterate again to see if forEach is stateless
-        characterStream.forEach(logger::log);
-        inOrder.verify(logger, calls(12)).log(anyChar());
+        onlyLetters.forEach(logger::log);
+        inOrder.verify(logger, calls(10)).log(anyChar());
     }
 }
