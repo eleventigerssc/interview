@@ -8,12 +8,14 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Pattern;
 
-import static org.mockito.ArgumentMatchers.anyChar;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.*;
 
 public class StreamsTest {
 
-    private static final String HELLO_WORLD[] = { "Hello", ",", "World", "!" };
+    private static final String TEST_STRINGS[] = { "Hello", ",", "World", "!" };
+    private static final Character TEST_CHARACTERS[] = { 'H', 'e', 'l', 'l', 'o', 'W', 'o', 'r', 'l', 'd' };
 
     private static final Function<String, String> UPPERCASE = String::toUpperCase;
 
@@ -37,39 +39,76 @@ public class StreamsTest {
     };
 
     private final Logger logger = spy(new SystemLogger());
-    private final List<String> strings = spy(new ArrayList<>(Arrays.asList(HELLO_WORLD)));
+    private final List<String> strings = spy(new ArrayList<>(Arrays.asList(TEST_STRINGS)));
+    private final List<Character> characters = spy(new ArrayList<>(Arrays.asList(TEST_CHARACTERS)));
 
     @Test
-    public void map_flatMap_filter_forEach() {
-        // Create a stream from an iterable of Strings
+    public void from_newStream_doesNotManipulateIterable() {
         Stream<String> stream = Streams.from(strings);
-        // strings object should not be touched at this point, think lazy
-        verifyZeroInteractions(strings);
 
-        // Create a mapped stream of Strings that are uppercase
-        Stream<String> upperCaseStrings = stream.map(UPPERCASE);
-        // Mapping should be a lazy operation, don't touch the string object yet
+        assertNotNull(stream);
         verifyZeroInteractions(strings);
+    }
 
-        // Decompose(flatMap) the uppercase strings stream into individual character stream
-        Stream<Character> characterStream = upperCaseStrings.flatMap(CHARACTERS);
-        // flatMap is lazy too
-        verifyZeroInteractions(strings);
+    @Test
+    public void forEach_iterateOverOriginal() {
+        Stream<String> stream = Streams.from(strings);
 
-        // Filter the individual character stream into a stream of letters only
-        Stream<Character> onlyLetters = characterStream.filter(ONLY_LETTERS);
-        // filter is lazy too
-        verifyZeroInteractions(strings);
+        List<String> expected = Arrays.asList(TEST_STRINGS);
+        List<String> actual = new ArrayList<>();
+        stream.forEach(actual::add);
 
-        // Just a test util
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    public void forEach_statelessIteration() {
+        Stream<String> stream = Streams.from(strings);
+
         InOrder inOrder = inOrder(logger);
 
-        // We finally use the result stream here, initial strings iterable may be touched
-        onlyLetters.forEach(logger::log);
-        inOrder.verify(logger, calls(10)).log(anyChar());
+        stream.forEach(logger::log);
+        inOrder.verify(logger, calls(4)).log(anyString());
+        verifyNoMoreInteractions(logger);
 
-        // Let's try iterate again to see if forEach is stateless
-        onlyLetters.forEach(logger::log);
-        inOrder.verify(logger, calls(10)).log(anyChar());
+        stream.forEach(logger::log);
+        inOrder.verify(logger, calls(4)).log(anyString());
+        verifyNoMoreInteractions(logger);
+    }
+
+    @Test
+    public void map_usesSuppliedMapper() {
+        Stream<String> upperCaseStrings = Streams.from(strings).map(UPPERCASE);
+        verifyZeroInteractions(strings);
+
+        List<String> expected = Arrays.asList("HELLO", ",", "WORLD", "!");
+        List<String> actual = new ArrayList<>();
+        upperCaseStrings.forEach(actual::add);
+
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    public void flatMap_useSuppliedMapper() {
+        Stream<Character> characterStream = Streams.from(strings).flatMap(CHARACTERS);
+        verifyZeroInteractions(strings);
+
+        List<Character> expected = Arrays.asList('H', 'e', 'l', 'l', 'o', ',', 'W', 'o', 'r', 'l', 'd', '!');
+        List<Character> actual = new ArrayList<>();
+        characterStream.forEach(actual::add);
+
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    public void filter_useSuppliedPredicate() {
+        Stream<Character> characterStream = Streams.from(characters).filter(ONLY_LETTERS);
+        verifyZeroInteractions(strings);
+
+        List<Character> expected = Arrays.asList(TEST_CHARACTERS);
+        List<Character> actual = new ArrayList<>();
+        characterStream.forEach(actual::add);
+
+        assertEquals(expected, actual);
     }
 }
