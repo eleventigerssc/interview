@@ -1,7 +1,6 @@
 package io.github.eleventigerssc.interview.streams;
 
 import org.junit.Test;
-import org.mockito.InOrder;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -38,7 +37,6 @@ public class StreamsTest {
         }
     };
 
-    private final Logger logger = spy(new SystemLogger());
     private final List<String> strings = spy(new ArrayList<>(Arrays.asList(TEST_STRINGS)));
     private final List<Character> characters = spy(new ArrayList<>(Arrays.asList(TEST_CHARACTERS)));
 
@@ -59,21 +57,6 @@ public class StreamsTest {
         stream.forEach(actual::add);
 
         assertEquals(expected, actual);
-    }
-
-    @Test
-    public void forEach_statelessIteration() {
-        Stream<String> stream = Streams.from(strings);
-
-        InOrder inOrder = inOrder(logger);
-
-        stream.forEach(logger::log);
-        inOrder.verify(logger, calls(4)).log(anyString());
-        verifyNoMoreInteractions(logger);
-
-        stream.forEach(logger::log);
-        inOrder.verify(logger, calls(4)).log(anyString());
-        verifyNoMoreInteractions(logger);
     }
 
     @Test
