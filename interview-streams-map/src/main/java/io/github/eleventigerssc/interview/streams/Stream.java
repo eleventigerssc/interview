@@ -2,6 +2,9 @@ package io.github.eleventigerssc.interview.streams;
 
 import java.util.Iterator;
 
+/**
+ * Copy of {@link java.util.stream.Stream} with a reduced API surface.
+ */
 interface Stream<T> {
 
     /**
