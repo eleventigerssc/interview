@@ -16,6 +16,24 @@ class LeaserTest {
 
     private val countingLong = AtomicLong()
 
+    @Test
+    fun `exclusive, no lease acquired, provider not called`() {
+        Leaser.Factory.get().exclusiveFor {
+            countingLong.getAndIncrement()
+        }
+
+        assertEquals(0, countingLong.get())
+    }
+
+    @Test
+    fun `refCounted, no lease acquired, provider not called`() {
+        Leaser.Factory.get().refCountedFor {
+            countingLong.getAndIncrement()
+        }
+
+        assertEquals(0, countingLong.get())
+    }
+
     @Test(timeout = DEFAULT_TEST_TIMEOUT_MS)
     fun `exclusive, acquire one after other, use and release`() {
         val leaser = Leaser.Factory.get().exclusiveFor {
@@ -43,6 +61,35 @@ class LeaserTest {
 
         assertNotNull(leaser.acquire())
         assertEquals(2, countingLong.get())
+    }
+
+
+    @Test(timeout = DEFAULT_TEST_TIMEOUT_MS)
+    fun `exclusive, acquire one, attempt to acquire another, blocks until interrupted`() {
+        val leaser = Leaser.Factory.get().exclusiveFor {
+            countingLong.getAndIncrement()
+        }
+
+        val leaseA = leaser.acquire()
+        val executor = Executors.newSingleThreadExecutor()
+        try {
+            val future = executor.submit {
+                try {
+                    leaser.acquire()
+                } catch (e: InterruptedException) {
+                    Thread.currentThread().interrupt()
+                    leaseA.close()
+                }
+            }
+
+            TimeUnit.MILLISECONDS.sleep(1L)
+            future.cancel(true)
+
+            assertNotNull(leaser.acquire())
+            assertEquals(2, countingLong.get())
+        } finally {
+            executor.shutdown()
+        }
     }
 
     @Test(timeout = DEFAULT_TEST_TIMEOUT_MS)
