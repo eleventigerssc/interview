@@ -1,5 +1,6 @@
 package io.github.eleventigerssc.interview.leaser
 
+import java.lang.Long.max
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
@@ -116,20 +117,17 @@ class LeaserTest {
         val executor = Executors.newScheduledThreadPool(concurrentLeaseCount)
         try {
             val leasesAcquired = CountDownLatch(concurrentLeaseCount)
-            val leasesClosed = CountDownLatch(concurrentLeaseCount)
-            (1..concurrentLeaseCount).forEach { _ ->
-                executor.execute {
+            val futures = (1..concurrentLeaseCount).map {
+                executor.submit {
+                    TimeUnit.NANOSECONDS.sleep(max(1L, (Random.nextFloat() * 100).toLong()))
                     leaser.acquire().use { lease ->
                         assertEquals(0, lease.value)
                         leasesAcquired.countDown()
-                        val sleepMillis = (Random.nextFloat() * 100).toLong()
-                        TimeUnit.MILLISECONDS.sleep(sleepMillis)
+                        leasesAcquired.await()
                     }
-                    leasesAcquired.await()
-                    leasesClosed.countDown()
                 }
             }
-            leasesClosed.await()
+            futures.forEach { it.get() }
             leaser.acquire().use { lease ->
                 assertEquals(1, lease.value)
             }
