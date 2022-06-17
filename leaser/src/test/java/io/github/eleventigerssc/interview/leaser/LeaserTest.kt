@@ -42,8 +42,10 @@ class LeaserTest {
         }
         leaser.acquire().use { lease ->
             assertEquals(0, lease.value)
+            assertEquals(0, lease.value)
         }
         leaser.acquire().use { lease ->
+            assertEquals(1, lease.value)
             assertEquals(1, lease.value)
         }
     }
