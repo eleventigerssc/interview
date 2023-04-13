@@ -1,6 +1,5 @@
 rootProject.name = 'interview-root'
 
 include ':streams'
-//include ':android-concurrency'
 include ':morse-coder'
 include ':leaser'
