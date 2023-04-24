@@ -11,7 +11,7 @@ import java.util.regex.Pattern;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.verifyNoInteractions;
 
 public class StreamsTest {
 
@@ -48,13 +48,13 @@ public class StreamsTest {
         Stream<String> stream = Streams.from(strings);
 
         assertNotNull(stream);
-        verifyNoMoreInteractions(strings);
+        verifyNoInteractions(strings);
     }
 
     @Test
     public void forEach_iterateOverOriginal() {
         Stream<String> stream = Streams.from(strings);
-        verifyNoMoreInteractions(strings);
+        verifyNoInteractions(strings);
 
         List<String> expected = Arrays.asList(TEST_STRINGS);
         List<String> actual = new ArrayList<>();
@@ -66,7 +66,7 @@ public class StreamsTest {
     @Test
     public void map_usesSuppliedMapper() {
         Stream<String> upperCaseStrings = Streams.from(strings).map(UPPERCASE);
-        verifyNoMoreInteractions(strings);
+        verifyNoInteractions(strings);
 
         List<String> expected = Arrays.asList("HELLO", ",", "WORLD", "!");
         List<String> actual = new ArrayList<>();
@@ -78,7 +78,7 @@ public class StreamsTest {
     @Test
     public void map_chained_usesSuppliedMappers() {
         Stream<Integer> hashCodes = Streams.from(strings).map(UPPERCASE).map(HASHCODE);
-        verifyNoMoreInteractions(strings);
+        verifyNoInteractions(strings);
 
         List<Integer> expected = Arrays.asList(68624562, 44, 82781042, 33);
         List<Integer> actual = new ArrayList<>();
@@ -94,7 +94,7 @@ public class StreamsTest {
     @Test
     public void flatMap_useSuppliedMapper() {
         Stream<Character> characterStream = Streams.from(strings).flatMap(CHARACTERS);
-        verifyNoMoreInteractions(strings);
+        verifyNoInteractions(strings);
 
         List<Character> expected = Arrays.asList('H', 'e', 'l', 'l', 'o', ',', 'W', 'o', 'r', 'l', 'd', '!');
         List<Character> actual = new ArrayList<>();
@@ -106,7 +106,7 @@ public class StreamsTest {
     @Test
     public void filter_useSuppliedPredicate() {
         Stream<Character> characterStream = Streams.from(characters).filter(ONLY_LETTERS);
-        verifyNoMoreInteractions(strings);
+        verifyNoInteractions(strings);
 
         List<Character> expected = Arrays.asList('H', 'e', 'l', 'l', 'o', 'W', 'o', 'r', 'l', 'd');
         List<Character> actual = new ArrayList<>();

@@ -6,7 +6,7 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.verifyNoInteractions;
 
 public class MorseCodersTest {
 
@@ -123,7 +123,7 @@ public class MorseCodersTest {
 
         subject.decode(inputStream);
 
-        verifyZeroInteractions(inputStream);
+        verifyNoInteractions(inputStream);
     }
 
     @Test
@@ -132,7 +132,7 @@ public class MorseCodersTest {
 
         subject.encode(inputStream);
 
-        verifyZeroInteractions(inputStream);
+        verifyNoInteractions(inputStream);
     }
 
     private static InputStream toInputStream(String input) {
